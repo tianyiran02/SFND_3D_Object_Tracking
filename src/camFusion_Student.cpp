@@ -150,10 +150,74 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
     // ...
 }
 
+static void filterPoints(std::vector<LidarPoint> & lidarPoints, std::vector<LidarPoint> & qualifiedPoint)
+{
+    double sum = 0.0;
+    double mean = 0.0;
+    double temp = 0.0;
+    double sd = 0.0;
+
+
+    // process pre lidar points first
+    for (auto it1 = lidarPoints.begin(); it1 != lidarPoints.end(); it1++)
+    {
+        sum += it1->x;
+    }
+    mean = sum / lidarPoints.size();
+
+    for (auto it1 = lidarPoints.begin(); it1 != lidarPoints.end(); it1++)
+    {
+        temp += pow(it1->x - mean, 2);
+    }
+
+    sd = sqrt(temp / lidarPoints.size());
+
+    for (auto it1 = lidarPoints.begin(); it1 != lidarPoints.end(); it1++)
+    {
+        temp = std::abs(it1->x - mean);
+        if (temp < (3 * sd))
+        {
+            qualifiedPoint.push_back(*it1);
+        }
+    }
+
+    return;
+}
+
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
-    // ...
+    std::vector<LidarPoint> qualifiedPointPre;
+    std::vector<LidarPoint> qualifiedPointCur;
+    double minCur = 1000.0;
+    double minPre = 1000.0;
+
+    // process cur lidar points then
+    filterPoints(lidarPointsCurr, qualifiedPointCur);
+    for (auto it1 = qualifiedPointCur.begin(); it1 != qualifiedPointCur.end(); it1 ++)
+    {
+        if (it1->x < minCur)
+        {
+            minCur = it1->x;
+        }
+    }
+    std::cout << "=============TEST minCur: " << minCur << std::endl;
+
+    // then process previous one
+    filterPoints(lidarPointsPrev, qualifiedPointPre);
+    for (auto it1 = qualifiedPointPre.begin(); it1 != qualifiedPointPre.end(); it1 ++)
+    {
+        if (it1->x < minPre)
+        {
+            minPre = it1->x;
+        }
+    }
+    std::cout << "=============TEST minPre: " << minPre << std::endl;
+
+    // calculate the ttc
+    TTC = minCur / ((minPre - minCur) * frameRate);
+
+    return;
 }
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
@@ -252,7 +316,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     }
 
     // final process, generate the map
-    for(auto it1 = tempTuple.begin(); it1 != tempTuple.end(); it1++)
+    for (auto it1 = tempTuple.begin(); it1 != tempTuple.end(); it1++)
     {
         auto preBoxId = std::get<0>(*it1);
 
@@ -264,7 +328,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             preProcessSet.insert(preBoxId);
 
             // loop again to find pairs
-            for(auto it2 = tempTuple.begin(); it2 != tempTuple.end(); it2++)
+            for (auto it2 = tempTuple.begin(); it2 != tempTuple.end(); it2++)
             {
                 if (std::get<0>(*it1) == preBoxId)
                 {
@@ -275,12 +339,13 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             // now find the maximum likelihood
             int max = 0;
             int mostCommon = -1;
-            map<int,int> maxSortMap;
+            map<int, int> maxSortMap;
             for (auto it2 = tempCounter.begin(); it2 != tempCounter.end(); it2++)
             {
-                maxSortMap[*it2] ++;
-                if (maxSortMap[*it2] > max) {
-                    max = maxSortMap[*it2]; 
+                maxSortMap[*it2]++;
+                if (maxSortMap[*it2] > max)
+                {
+                    max = maxSortMap[*it2];
                     mostCommon = *it2;
                 }
             }

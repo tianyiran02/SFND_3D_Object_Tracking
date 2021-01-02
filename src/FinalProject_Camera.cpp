@@ -283,7 +283,7 @@ int main(int argc, const char *argv[])
 
                         string windowName = "Final Results : TTC";
                         cv::namedWindow(windowName, cv::WINDOW_NORMAL);
-                        cv::resizeWindow(windowName, 1024, 640);
+                        cv::resizeWindow(windowName, 1024, 320);
 
                         cv::imshow(windowName, visImg);
                         cout << "Press key to continue to next frame" << endl;
