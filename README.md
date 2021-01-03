@@ -56,7 +56,14 @@ According to mid-term project result, to make best use of time, I'll only test f
 
 Rational: base on the previous test, SIFT, BRISK and FAST are most unique algorithms. Other algorithms more or less similar to those 3. Besides, SIFT basically represent the most tradition method, where BRISK are more advance, speed-up whole process without gradient calculation. And FAST is just something jump out of box... As for Descriptor, the dicision are similar. The tradition BF searching method was decided and KNN selector was used. Other approach is not tested because I assume the result is predictable, therefore skip those algorithm such as FLEANN and NN selector to save time.
 
+Besides, the performance data, such as points matched and execution time, is not log and analyzed here as previous mid project has already complete this task. Current project doesn't have any optimal regards of the algorithms, repeat this analyze is not worthy of time. However, the TTC compute with each algorihtm combination for each frame is recorded for analyze.
+
 Result shown in the excel sheet within the workspace.
+
+#### Combination Test Result Comments
+According to the result, all different camera algorihtms provide similar TTC calculations. BRIEF extractor has highest standard deviation compare with FREAK and SIFT, where FREAK and SIFT are similar. 
+
+Because the lidar measurement is not ground true, I didn't compare the camera TTC accuracy.
 
 #### Way-off cases
 
